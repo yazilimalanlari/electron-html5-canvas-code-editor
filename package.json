@@ -1,0 +1,13 @@
+{
+	"name": "editor",
+	"version": "1.0.0",
+	"author": "Abdulbaki Zırıh",
+	"main": "main.js",
+	"scripts": {
+		"start": "electron ."
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"electron": "^11.1.1"
+	}
+}
