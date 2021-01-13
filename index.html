@@ -10,7 +10,16 @@
 
             body {
                 margin: 0;
-                font-family: 'Source Code Pro';
+                font-family: 'Roboto Mono', Muli, 'Source Code Pro';
+            }
+            
+            ul, li {
+                margin: 0;
+                padding: 0;
+            }
+            
+            li {
+                list-style: none;
             }
 
             .wrapper {
@@ -24,6 +33,16 @@
                 width: 200px;
                 height: 100%;
                 background-color: #000000;
+            }
+            
+            .files ul:not(:first-child) {
+                display: none;
+            }
+            
+            .files ul li {
+                color: #ffffff;
+                cursor: pointer;
+                user-select: none;
             }
             
             .tabs {
@@ -46,6 +65,10 @@
                 padding: 0 10px;
                 cursor: pointer;
                 user-select: none;
+            }
+            
+            .tab.active {
+                background-color: #4f525c;
             }
 
             .tab .tab-title {

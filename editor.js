@@ -20,17 +20,25 @@ const cursor = {
     x: 0,
     y: 0,
     color: 'white',
+    isAnimation: true,
     draw() {
         const x = this.x * 10 + (editorConfig.paddingLeft);
         const y = this.y * rowHeight - scroll.calculateScrollRealPositionY() + (editorConfig.paddingTop / 4);
-        const w = 2;
+        const w = 1;
         const h = rowHeight;
-        this.color = this.color === 'white' ? '#151517' : 'white';
+        this.color = this.color === 'white' && this.isAnimation ? '#151517' : 'white';
         ctx.fillStyle = this.color;
         ctx.fillRect(x, y, w, h);
     },
     animation() {
-        setInterval(this.draw.bind(this), 1000);
+        this.interval = setInterval(this.draw.bind(this), 1000);
+    },
+    writeMode() {
+        if (!this.isAnimation) return;
+        this.isAnimation = false;
+        setTimeout(() => {
+            this.isAnimation = true;
+        }, 1000);
     }
 }
 
@@ -134,7 +142,7 @@ const rows = [[]];
 }*/
 
 const fontFamily = 'Source Code Pro';
-const fontSize = 16;
+const fontSize = 15;
 
 const charsColors = {
     '{': 'green',
@@ -152,7 +160,8 @@ const keywords = [
     'else',
     'switch',
     'case',
-    'break'
+    'break',
+    'for'
 ]
 
 function calculateCharPositionX(charX) {
@@ -171,7 +180,7 @@ const lastCharAnimation = {
         this.char = { x, y };
         this.isFinished = false;
         this.toX = calculateCharPositionX(x);
-        this.fromX = this.toX - 10;
+        this.fromX = this.toX - 5;
         this.globalAlpha = 0;
         this.interval = setInterval(() => {
             this.fromX += 2;
@@ -251,7 +260,7 @@ function draw() {
                 string = !string;
             } else if (char === '.') {
                 prototype = true;
-            } else if (['(', ')', ';', '='].includes(char) && prototype) {
+            } else if (['(', ')', ';', '=', ','].includes(char) && prototype) {
                 prototype = false;
             }
 
@@ -411,6 +420,15 @@ const History = {
     }
 };
 
+const getFirstSpacesCount = row => {
+    let count = 0;
+    for (let i = 0; i < row.length; i++) {
+        if (row[i] !== ' ') break;
+        count++;
+    }
+    return count;
+}
+
 let historyTimeout = null;
 document.addEventListener('keydown', e => {
     if (historyTimeout != null) {
@@ -426,11 +444,10 @@ document.addEventListener('keydown', e => {
             rows.splice(cursor.y + 1, 0, rows[cursor.y].splice(cursor.x));
             cursor.x = 0;
             cursor.y++;
-            if (!rows[cursor.y - 1].find(char => char !== ' ')) {
-                for (let i = 0; i < rows[cursor.y - 1].length; i++) {
-                    rows[cursor.y].push(' ');
-                    cursor.x++;
-                }
+            
+            for (let i = 0; i < getFirstSpacesCount(rows[cursor.y - 1]); i++) {
+                rows[cursor.y].splice(0, 0, ' ');
+                cursor.x++;
             }
             History.setHistory();
             break;
@@ -497,7 +514,6 @@ document.addEventListener('keydown', e => {
                 return;
             }
     }
-    //console.log(e.key);
 
     if (cursor.y >= rows.length) rows.push([]);
     
@@ -506,6 +522,7 @@ document.addEventListener('keydown', e => {
         History.clearRedo();
         lastCharAnimation.setAnimation(cursor.x, cursor.y);
         rows[cursor.y].splice(cursor.x++, 0, e.key);
+        cursor.writeMode();
     }
     draw();
 });
