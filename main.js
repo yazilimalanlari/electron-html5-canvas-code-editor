@@ -82,14 +82,24 @@ const menuTemplate = [
         label: 'File',
         submenu: [
             {
+                label: 'New File',
+                click() {
+                    win.webContents.send('open-file', {
+                        content: '',
+                        filename: 'New File',
+                        path: '@new-file' + Math.random().toString()
+                    });
+                }
+            },
+            {
                 label: 'Open File',
-                async click() {
-                    const result = await dialog.showOpenDialog({
+                click() {
+                    const result = dialog.showOpenDialogSync({
                         properties: ['openFile']
                     });
                     
-                    if (!result.canceled) {
-                        openFile(result.filePaths[0]);
+                    if (result !== undefined) {
+                        openFile(result[0]);
                     }
                 }
             },
@@ -172,7 +182,20 @@ app.on('activate', () => {
 ipcMain.on('open-dev-tools', () => win.webContents.openDevTools());
 
 ipcMain.on('save', (e, data) => {
-    writeFileSync(data.openedFile.path, data.content, 'utf-8');
+    if (data.openedFile.path.startsWith('@new-file')) {
+        const path = dialog.showSaveDialogSync({
+            properties: ['openFile']
+        });
+        if (path === undefined) return;
+        const filename = basename(path);
+        writeFileSync(path, data.content, 'utf-8');
+        openedFiles.push({
+            filename,
+            path
+        });
+    } else {
+        writeFileSync(data.openedFile.path, data.content, 'utf-8');
+    }
 });
 
 ipcMain.on('save-as', (e, data) => {
